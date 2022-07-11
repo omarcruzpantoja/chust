@@ -61,6 +61,13 @@ impl Server {
         };
 
         self.client_connections.lock().unwrap().insert(addr.clone(), client_connection);
+        let message = format!("+{} user connected.", addr);
+        for (_addr, client) in self.client_connections.lock().unwrap().iter_mut() {
+            let socket_ptr = client.socket.clone();
+            let mut temp_socket = socket_ptr.deref();
+            temp_socket.write(message.as_bytes()).unwrap();
+        }
+
         self.print_number_of_clients();
 
     }
@@ -104,7 +111,7 @@ impl Server {
         thread::spawn(move || {
             let mut socket = socket_ptr.deref();
             let local_address = socket.peer_addr().unwrap();
-            let message = b"connection verifier";
+            let message = b"PING";
             while 
             match socket.write(message) {
                 Ok(_) => {
