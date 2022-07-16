@@ -1,4 +1,4 @@
-use std::env;
+use std::{env};
 
 mod server;
 mod client;
@@ -24,7 +24,7 @@ fn main() -> std::io::Result<()> {
             client.listener();
         }
         _ => {
-            println!("Invalid option");
+            println!("GO HAVE FUN DEBUGING THINGS YAYAYYAYAYA.");
         }
     }
 
