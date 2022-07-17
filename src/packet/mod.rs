@@ -42,30 +42,29 @@ impl Packet {
 
     pub fn prepare_packet(mut message: Vec<u8>) -> Vec<u8> {
         // Function prepares the packet to be sent. Adds the header and appends the content of the message into a single vec.
-        let mut len_message: Vec<u8> = message.len().to_be_bytes().to_vec();
+        let mut header: Vec<u8> = message.len().to_be_bytes().to_vec();
         let mut packet_data: Vec<u8> = Vec::new();
         println!("Packet Size: {:?}", message.len());
-        packet_data.append(&mut len_message);
+        packet_data.append(&mut header);
         packet_data.append(&mut message);
         packet_data
     }
 
     pub fn get_message(&mut self, mut socket: &TcpStream) {
         // Function uses the header info to figure out how much data from the stream we have to read in order to get the entire packet.
-        let mut data_size = self.header.data_size;
+        let mut data_size = self.header.data_size.clone();
         let packet_data = &mut self.data;
-        
         while data_size > 0 {
-            let mut message_buffer = if data_size > 1024 { vec![0 as u8; 1024] } else { vec![0 as u8; data_size] };
+            let buffer_size = if data_size > 1024 { 1024 } else { data_size };
+            let mut message_buffer = vec![0 as u8; buffer_size];
             
             match socket.read(&mut message_buffer) {
                 Ok(n) => {
-                    packet_data.append(&mut message_buffer);
+                    packet_data.splice(0 .. buffer_size, message_buffer);
                     data_size -= n;
                 },
                 Err(e) => {
                     println!("SOME ERROR HAPPENED WHILE READING {e:?}");
-
                 }
             }
         }
